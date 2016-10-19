@@ -24,7 +24,8 @@ screw_length = 5;
 
 total_thickness = disk_thickness + bearing_depth;
 /////////////////////////////////////// protoypes ////////////////////////////////////////////
-bottom_disk();
+translate([-disk_diameter/2 - 2.5, 0, 0]){ bottom_disk(); }
+translate([disk_diameter/2 + 2.5, 0, 0]){ top_disk(); }
 
 /////////////////////////////////////// Modules /////////////////////////////////////////////
 
