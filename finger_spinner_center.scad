@@ -7,20 +7,20 @@
 
 /////////////////////////////////////// Parameters //////////////////////////////////////////
 
-disk_diameter = 20;
-disk_thickness = 1.5;
+disk_diameter = 22;
+disk_thickness = 1.8;
 
 bearing_depth = 7; 
-inner_bearing_diameter = 7; 
+inner_bearing_diameter = 8; 
 outer_bearing_diameter = 10;
 bearing_seperation = 0.5;
 
 bevel_height = 0.3; 
 
-screw_diameter = 3;
-screw_head_height = 2;
-screw_head_diameter = 4;
-screw_length = 5;
+screw_diameter = 2.87;
+screw_head_height = 5;
+screw_head_diameter = 2.87;
+screw_length = 7.41;
 
 total_thickness = disk_thickness + bearing_depth;
 /////////////////////////////////////// protoypes ////////////////////////////////////////////
