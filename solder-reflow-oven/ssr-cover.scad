@@ -12,10 +12,19 @@ screw_base_container_height = 7.50;
 screw_port_width = 5; 
 screw_port_height = 5;
 
+mount_offset = 7.5;
 // prototypes
     bottom();
     connection_protector();
-
+    translate([length - screw_base_container_width, 0, 0]) {
+        connection_protector();
+    }
+    translate([length - screw_base_container_width, width+thickness, 0]) {
+        connection_protector();
+    }
+    translate([0, width+thickness, 0]) {
+        connection_protector();
+    }
 // modules
 module base() {
     cube([length, width, thickness]);
