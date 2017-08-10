@@ -1,7 +1,6 @@
-// Parameters
-
-length = 45; 
-width = 62; // actual dimension is 60mm, just added wiggle room 
+/*------------------------ Parameters ------------------------*/
+length = 62; 
+width = 45; // actual dimension is 60mm, just added wiggle room 
 thickness = 5; 
 
 light_port_width = 3;
@@ -12,33 +11,42 @@ screw_base_container_height = 7.50;
 screw_port_width = 5; 
 screw_port_height = 5;
 
+mount_width = 1.5;
 mount_offset = 7.5;
-// prototypes
-    bottom();
-    connection_protector();
-    translate([length - screw_base_container_width, 0, 0]) {
-        connection_protector();
-    }
-    translate([length - screw_base_container_width, width+thickness, 0]) {
-        connection_protector();
-    }
-    translate([0, width+thickness, 0]) {
-        connection_protector();
-    }
-// modules
-module base() {
-    cube([length, width, thickness]);
-}
 
-module light_port() {
-    cylinder(thickness + 1, light_port_width, light_port_width);
+/*------------------------ Prototpyes ------------------------*/
+ssr_plate();
+
+/*------------------------ Modules ------------------------*/
+module ssr_plate() {
+    difference() {
+        union() {
+            bottom();
+            connection_protector();
+            translate([width - screw_base_container_width, 0, 0]) {
+                connection_protector();
+            }
+            translate([width - screw_base_container_width, length+thickness, 0]) {
+                connection_protector();
+            }
+            translate([0, length+thickness, 0]) {
+                connection_protector();
+            }
+        }
+        translate([width/2, mount_offset, 0]) {
+            cylinder(thickness, mount_width, $fn=100);
+        }
+        translate([width/2, length - mount_offset, 0]) {
+            cylinder(thickness, mount_width, $fn=100);
+        }    
+    }
 }
 
 module bottom() {
     difference() {
-        base();
+        cube([width, length, thickness]);
         translate([34,20,0]) {
-            light_port();
+            cylinder(thickness, light_port_width, light_port_width); // cutout for the signal led
         }
     }
 }
