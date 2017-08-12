@@ -1,7 +1,7 @@
 /*------------------------ Parameters ------------------------*/
 length = 62; 
 width = 45; // actual dimension is 60mm, just added wiggle room 
-thickness = 5; 
+thickness = 3; 
 
 light_port_width = 3;
 
@@ -34,10 +34,10 @@ module ssr_plate() {
             }
         }
         translate([width/2, mount_offset, 0]) {
-            cylinder(thickness, mount_width, $fn=100);
+            cylinder(thickness, mount_width, mount_width, $fn=100);
         }
         translate([width/2, length - mount_offset, 0]) {
-            cylinder(thickness, mount_width, $fn=100);
+            cylinder(thickness, mount_width, mount_width, $fn=100);
         }    
     }
 }
@@ -46,7 +46,7 @@ module bottom() {
     difference() {
         cube([width, length, thickness]);
         translate([34,20,0]) {
-            cylinder(thickness, light_port_width, light_port_width); // cutout for the signal led
+            cylinder(thickness, light_port_width, light_port_width, $fn=100); // cutout for the signal led
         }
     }
 }
