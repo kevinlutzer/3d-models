@@ -56,20 +56,6 @@ rpi_mount_radius = 3;
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
 
-module rpi_corner_standoff(angle = 0) {
-  rotate([0,0, angle]) {
-    linear_extrude(height=rpi_standoff_height){
-      difference() {
-        union() {
-          square([rpi_standoff_spacing_from_corner, rpi_standoff_spacing_from_corner]);
-          circle(d=rpi_standoff_diameter, $fn=100);
-        }
-        circle(d=rpi_standoff_screw_diameter, $fn=100);
-      }
-    }
-  }
-}
-
 module rpi_base_cutout() {
     rounded_corner_rectangle(rpi_base_length, rpi_base_width, cavity_length, rpi_base_corner_radius, 0 );
 }
@@ -81,7 +67,7 @@ module rpi_case_corner_standoffs(height) {
 }
 
 module rpi_base_corner_standoffs() {
-  mounting_holes(rpi_base_length, rpi_base_width, rpi_standoff_spacing_from_corner, 0, 0);
+  mounting_holes(rpi_base_length - rpi_standoff_spacing_from_corner * 2, rpi_base_width - rpi_standoff_spacing_from_corner * 2, rpi_base_corner_radius, rpi_standoff_screw_diameter/2, 0);
 }
 
 module rpi_case_profile() {
@@ -241,52 +227,24 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
-//rpi_case_bottom_base();
-//rpi_case_base();
-//rpi_case_top();
-//fan_profile();
-//rpi_base_cutout();
-//rpi_case_profile();
-//rpi_base_corner_standoffs();
-//rpi_corner_standoff(270);
-//rpi_base_corner_standoffs();
-//rpi_case_profile();
-//rpi_base_cutout();
-//rpi_case_bottom();
-//rpi_base_corner_standoffs();
-//rpi_case_corner_standoffs(rpi_case_bottom_height);
-//rpi_case_corner_standoffs();
-//rpi_case_corner_standoff();
-//rpi_case_corner_standoff();
-//rpi_case_mount();
-//mounting_holes(fan_size - fan_hole_spacing_from_corner*2, fan_size - fan_hole_spacing_from_corner*2, fan_hole_radius, 0, 0);
-//rpi_peripherals_case_bottom_cutout();
-//rpi_case_mounts();
-//base_fan_profile();
-//fan_profile();
-//rpi_case_top();
-//fan_profile();
-//rounded_corner_rectangle(65, 30, 5, 1, 10);
-//mounting_holes(20,20,4,1,2);
-//temp();
+
 translate([0, 50, 0]){
-//  rpi_case_top();
+  rpi_case_top();
 }
 
-//rpi_base_cutout()
+rpi_case_bottom();
 
+//rpi_base_cutout()
+//rpi_base_corner_standoffs();
 //rpi_case_profile();
 //rpi_base_cutout();
 //rpi_case_profile();
 //rpi_base_cutout();
-difference() {
-                rpi_case_profile();
-                rpi_base_cutout();
-            }
+
 
 //rpi_base_cutout();
 //rpi_case_bottom_base();
-//rpi_case_bottom();
+
 //rpi_case_mounts();
 //rpi_base_corner_standoffs();
 //rpi_case_corner_standoffs(rpi_case_bottom_height);
