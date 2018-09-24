@@ -56,63 +56,78 @@ rpi_mount_radius = 3;
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
 
-module rpi_base_cutout() {
+module base_cutout() {
     rounded_corner_rectangle(rpi_base_length, rpi_base_width, cavity_length, rpi_base_corner_radius, 0 );
 }
 
 module rpi_case_corner_standoffs(height) {
   linear_extrude(height=height){
-    mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
+
   }
 }
 
-module rpi_base_corner_standoffs() {
+module base_corner_standoffs() {
   mounting_holes(rpi_base_length - rpi_standoff_spacing_from_corner * 2, rpi_base_width - rpi_standoff_spacing_from_corner * 2, rpi_base_corner_radius, rpi_standoff_screw_diameter/2, 0);
 }
 
-module rpi_case_profile() {
+module case_profile() {
   rounded_corner_rectangle(rpi_case_length, rpi_case_width, cavity_length, rpi_case_standoff_radius, 0);
+}
+
+module case_wall_profile() {
+  difference() {
+    case_profile();
+    base_cutout();
+  }
 }
 
 module rpi_case_bottom() {
   difference() {
     union() {
-      rpi_case_mounts();
-      rpi_base_corner_standoffs();
-      rpi_case_corner_standoffs(rpi_case_bottom_height);
-      translate([0, 0, rpi_case_wall_thickness]) {rpi_base_corner_standoffs();}
-      linear_extrude(height=rpi_case_bottom_height) {
-            difference() {
-                rpi_case_profile();
-                rpi_base_cutout();
-            }
+        // The wall with the bottom mounting holes
+        linear_extrude(height=rpi_case_bottom_height) {
+          union() {
+            mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
+            case_wall_profile();
           }
+        }
         
-      linear_extrude(height=rpi_case_wall_thickness) {
-        rpi_case_profile();
-      }
+        // Bottom of the case / The base profile
+        linear_extrude(height=rpi_case_wall_thickness) {
+          case_profile();
+        }
+        
+        // Standoffs to hold the rapsberry pi from the base
+        translate([0, 0, rpi_case_wall_thickness]) {
+          linear_extrude(height=rpi_standoff_height) {
+            base_corner_standoffs();
+          }
+        }
     }
+    
+    // Remove the htmi port, usb ports etc. 
     rpi_peripherals_case_bottom_cutout();
   }
 }
 
 module rpi_case_top() {
-    difference() {
-    union() {
-      rpi_case_corner_standoffs(rpi_case_top_height);
-      linear_extrude(height=rpi_case_top_height) {
-            difference() {
-                rpi_case_profile();
-                rpi_base_cutout();
-            }
-          }
-        
-      linear_extrude(height=rpi_case_wall_thickness) {
+  union() {
+    rpi_case_corner_standoffs(rpi_case_top_height);
+    linear_extrude(height=rpi_case_top_height) {
+        union() {
+          mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
         difference() {
-            rpi_case_profile();
-            translate([rpi_base_length/2 - fan_size/2, 0, 0]){fan_profile();}
+              case_profile();
+              base_cutout();
+          }
         }
-        
+          
+    }
+      
+    linear_extrude(height=rpi_case_wall_thickness) {
+      difference() {
+          case_profile();
+          translate([rpi_base_length/2 - fan_size/2, 0, 0]){fan_profile();}
       }
     }
   }
@@ -134,7 +149,7 @@ module rpi_case_mounts() {
 
 module rpi_case_bottom_base() {
     linear_extrude(height=rpi_case_wall_thickness) {
-      rpi_base_cutout();
+      base_cutout();
     }
 }
 
@@ -234,6 +249,7 @@ translate([0, 50, 0]){
 
 rpi_case_bottom();
 
+
 //rpi_base_cutout()
 //rpi_base_corner_standoffs();
 //rpi_case_profile();
@@ -247,6 +263,5 @@ rpi_case_bottom();
 
 //rpi_case_mounts();
 //rpi_base_corner_standoffs();
-//rpi_case_corner_standoffs(rpi_case_bottom_height);
 
 //rpi_case_profile();
