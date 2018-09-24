@@ -26,8 +26,8 @@ rpi_thickness = 1.5;
 cavity_length = 25;
 
 // Fan Peripherals
-fan_size = 25;
-fan_hole_spacing_from_corner = 2.5;
+fan_size = 30;
+fan_hole_spacing_from_corner = 3;
 fan_hole_radius = 1.8;
 
 
@@ -45,7 +45,7 @@ fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_o
 
 rpi_case_wall_thickness = 3;
 rpi_case_bottom_height = rpi_thickness + rpi_case_wall_thickness + rpi_standoff_height + hdmi_port_height;
-rpi_case_top_height = 20;
+rpi_case_top_height = 35;
 rpi_case_width = 2*rpi_case_wall_thickness + rpi_base_width;
 rpi_case_length = 2*rpi_case_wall_thickness + rpi_base_length + cavity_length;
 rpi_case_length = 2*rpi_case_wall_thickness + rpi_base_length;
@@ -70,92 +70,22 @@ module rpi_corner_standoff(angle = 0) {
   }
 }
 
-module rpi_case_corner_standoff(height) {
-  linear_extrude(height=height){
-    difference() {
-      circle(r=rpi_case_standoff_radius, $fn=100);
-      circle(r=rpi_case_hole_radius, $fn=100);
-    }
-  }
-}
-
 module rpi_base_cutout() {
-    translate([(-rpi_base_length/2) - cavity_length, -rpi_base_width/2, 0]) {
-        square([cavity_length, rpi_base_width]);
-    }
-   	hull()
-	{
-		// place 4 circles in the corners, with the given radius
-		translate([(-rpi_base_length/2) + rpi_base_corner_radius - cavity_length, (-rpi_base_width/2) + rpi_base_corner_radius, 0])
-		circle(r=rpi_base_corner_radius, $fn=100);
-	
-		translate([(rpi_base_length/2) - rpi_base_corner_radius, (-rpi_base_width/2) + rpi_base_corner_radius, 0])
-		circle(r=rpi_base_corner_radius, $fn=100);
-	
-		translate([(-rpi_base_length/2) + rpi_base_corner_radius - cavity_length, (rpi_base_width/2) - rpi_base_corner_radius, 0])
-		circle(r=rpi_base_corner_radius, $fn=100);
-	
-		translate([(rpi_base_length/2) - rpi_base_corner_radius, (rpi_base_width/2 - rpi_base_corner_radius), 0])
-		circle(r=rpi_base_corner_radius, $fn=100);
-	}
+    rounded_corner_rectangle(rpi_base_length, rpi_base_width, cavity_length, rpi_base_corner_radius, 0 );
 }
 
 module rpi_case_corner_standoffs(height) {
-      
-  // bottom left
-  translate([(-rpi_case_length/2) - cavity_length, (-rpi_case_width/2), 0])
-  rpi_case_corner_standoff(height);
-
-  // bottom right
-  translate([(rpi_case_length/2), (-rpi_case_width/2), 0])
-  rpi_case_corner_standoff(height);
-
-  // top left
-  translate([(-rpi_case_length/2) - cavity_length, (rpi_case_width/2), 0])
-  rpi_case_corner_standoff(height);
-
-  // top right
-  translate([(rpi_case_length/2), (rpi_case_width/2), 0])
-  rpi_case_corner_standoff(height);
+  linear_extrude(height=height){
+    mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
+  }
 }
 
 module rpi_base_corner_standoffs() {
-      
-  // bottom left
-  translate([(-rpi_base_length/2)+(rpi_standoff_spacing_from_corner), (-rpi_base_width/2)+(rpi_standoff_spacing_from_corner), 0])
-  rpi_corner_standoff(180);
-
-  // bottom right
-  translate([(rpi_base_length/2)-(rpi_standoff_spacing_from_corner), (-rpi_base_width/2)+(rpi_standoff_spacing_from_corner), 0])
-  rpi_corner_standoff(270);
-  // top left
-  translate([(-rpi_base_length/2)+(rpi_standoff_spacing_from_corner), (rpi_base_width/2)-(rpi_standoff_spacing_from_corner), 0])
-  rpi_corner_standoff(90);
-
-  // top right
-  translate([(rpi_base_length/2)-(rpi_standoff_spacing_from_corner), (rpi_base_width/2)-(rpi_standoff_spacing_from_corner), 0])
-  rpi_corner_standoff();
+  mounting_holes(rpi_base_length, rpi_base_width, rpi_standoff_spacing_from_corner, 0, 0);
 }
 
 module rpi_case_profile() {
-  hull()
-  {
-    // bottom left
-    translate([(-rpi_case_length/2) - cavity_length + rpi_case_standoff_radius, (-rpi_case_width/2) + rpi_case_standoff_radius, 0])
-    circle(r=rpi_case_standoff_radius, $fn=100);
-
-    // bottom right
-    translate([(rpi_case_length/2) - rpi_case_standoff_radius, (-rpi_case_width/2) + rpi_case_standoff_radius, 0])
-    circle(r=rpi_case_standoff_radius, $fn=100);
-
-    // top left
-    translate([(-rpi_case_length/2) - cavity_length + rpi_case_standoff_radius, (rpi_case_width/2) - rpi_case_standoff_radius, 0])
-    circle(r=rpi_case_standoff_radius, $fn=100);
-
-    // top right
-    translate([(rpi_case_length/2) - rpi_case_standoff_radius, (rpi_case_width/2) - rpi_case_standoff_radius, 0])
-    circle(r=rpi_case_standoff_radius, $fn=100);
-  }  
+  rounded_corner_rectangle(rpi_case_length, rpi_case_width, cavity_length, rpi_case_standoff_radius, 0);
 }
 
 module rpi_case_bottom() {
@@ -181,19 +111,22 @@ module rpi_case_bottom() {
 }
 
 module rpi_case_top() {
-  difference() {
+    difference() {
     union() {
       rpi_case_corner_standoffs(rpi_case_top_height);
       linear_extrude(height=rpi_case_top_height) {
             difference() {
                 rpi_case_profile();
                 rpi_base_cutout();
-                fan_profile();
             }
           }
         
       linear_extrude(height=rpi_case_wall_thickness) {
-        rpi_case_profile();
+        difference() {
+            rpi_case_profile();
+            translate([rpi_base_length/2 - fan_size/2, 0, 0]){fan_profile();}
+        }
+        
       }
     }
   }
@@ -239,51 +172,23 @@ module rpi_peripherals_case_bottom_cutout() {
   }
 }
 
-module disk(outer_radius) {
-  difference() {
-    circle(r = outer_radius, $fn=100);
-    circle(r = outer_radius-2, $fn=100);
-  }
-}
-
-module base_fan_profile() {
-  hull()
-  {
-    // bottom left
-    translate([(-fan_size/2) + fan_hole_spacing_from_corner/2, (-fan_size/2) + fan_hole_spacing_from_corner/2, 0])
-    circle(r=fan_hole_radius, $fn=100);
-
-    // bottom right
-    translate([(fan_size/2) - fan_hole_spacing_from_corner/2, (-fan_size/2) + fan_hole_spacing_from_corner/2, 0])
-    circle(r=fan_hole_radius, $fn=100);
-
-    // top left
-    translate([(-fan_size/2) + fan_hole_spacing_from_corner/2, (fan_size/2) - fan_hole_spacing_from_corner/2, 0])
-    circle(r=fan_hole_radius, $fn=100);
-
-    // top right
-    translate([(fan_size/2) - fan_hole_spacing_from_corner/2, (fan_size/2) - fan_hole_spacing_from_corner/2, 0])
-    circle(r=fan_hole_radius, $fn=100);
-  }
-}
-
 module fan_profile() {
+  // Get the negative of the structure 
   difference() {
-    base_fan_profile();
+    // Base fan profile
+    rounded_corner_rectangle(fan_size, fan_size, 0, fan_hole_radius, 0 );
     union() {
      difference() {
-     base_fan_profile();
+     // Base fan profile
+     rounded_corner_rectangle(fan_size, fan_size, 0, fan_hole_radius, 0 );
       
       // Mounting Holes
-      translate([(fan_size/2 - fan_hole_spacing_from_corner), (fan_size/2 - fan_hole_spacing_from_corner)]) { circle(r = fan_hole_radius, $fn=100);}
-      translate([-(fan_size/2 - fan_hole_spacing_from_corner), (fan_size/2 - fan_hole_spacing_from_corner)]) { circle(r = fan_hole_radius, $fn=100);}
-      translate([-(fan_size/2 - fan_hole_spacing_from_corner), -(fan_size/2 - fan_hole_spacing_from_corner)]) { circle(r = fan_hole_radius, $fn=100);}
-      translate([(fan_size/2 - fan_hole_spacing_from_corner), -(fan_size/2 - fan_hole_spacing_from_corner)]) { circle(r = fan_hole_radius, $fn=100);}
+    mounting_holes(fan_size - fan_hole_spacing_from_corner*2, fan_size - fan_hole_spacing_from_corner*2, fan_hole_radius, 0, 0);
       
       // Concentric circles for fan grill
-      disk(12);
-      disk(8);
-      disk(4); 
+      disk(12, 10);
+      disk(8, 6);
+      disk(4, 2); 
      }
    
      // Cross for extra stability
@@ -294,9 +199,44 @@ module fan_profile() {
      
    }
  }
-  
-  
-  
+}
+
+module disk(outer_radius, inner_radius) {
+  difference() {
+    circle(r=outer_radius, $fn=100);
+    circle(r=inner_radius, $fn=100);
+  }
+}
+
+module rounded_corner_rectangle(length = 0, width = 0, left_offset = 0, corner_radius = 0, corner_spacing = 0 ) {
+  hull()
+  {
+   // top left
+   translate([-length/2 - left_offset + corner_radius, width/2 - corner_radius, 0]) { disk(corner_radius, 0);}
+
+   // bottom left
+   translate([-length/2 - left_offset + corner_radius, -width/2 + corner_radius, 0]) { disk(corner_radius, 0);}
+   
+   // top right
+   translate([length/2 - corner_radius, width/2 - corner_radius, 0]) { disk(corner_radius, 0);}
+   
+   // bottom right
+   translate([length/2 - corner_radius, corner_radius -width/2, 0]) { disk(corner_radius, 0);}
+  }
+}
+
+module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radius=0, left_offset=0) {
+   // top left
+   translate([-grid_length/2 - left_offset, grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+
+   // bottom left
+   translate([-grid_length/2 - left_offset, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   
+   // top right
+   translate([grid_length/2, grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   
+   // bottom right
+   translate([grid_length/2, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
 } 
 
 
@@ -304,6 +244,7 @@ module fan_profile() {
 //rpi_case_bottom_base();
 //rpi_case_base();
 //rpi_case_top();
+//fan_profile();
 //rpi_base_cutout();
 //rpi_case_profile();
 //rpi_base_corner_standoffs();
@@ -318,9 +259,36 @@ module fan_profile() {
 //rpi_case_corner_standoff();
 //rpi_case_corner_standoff();
 //rpi_case_mount();
+//mounting_holes(fan_size - fan_hole_spacing_from_corner*2, fan_size - fan_hole_spacing_from_corner*2, fan_hole_radius, 0, 0);
 //rpi_peripherals_case_bottom_cutout();
 //rpi_case_mounts();
 //base_fan_profile();
 //fan_profile();
-rpi_case_top();
+//rpi_case_top();
 //fan_profile();
+//rounded_corner_rectangle(65, 30, 5, 1, 10);
+//mounting_holes(20,20,4,1,2);
+//temp();
+translate([0, 50, 0]){
+//  rpi_case_top();
+}
+
+//rpi_base_cutout()
+
+//rpi_case_profile();
+//rpi_base_cutout();
+//rpi_case_profile();
+//rpi_base_cutout();
+difference() {
+                rpi_case_profile();
+                rpi_base_cutout();
+            }
+
+//rpi_base_cutout();
+//rpi_case_bottom_base();
+//rpi_case_bottom();
+//rpi_case_mounts();
+//rpi_base_corner_standoffs();
+//rpi_case_corner_standoffs(rpi_case_bottom_height);
+
+//rpi_case_profile();
