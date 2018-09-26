@@ -6,72 +6,61 @@
 
 /////////////////////////////////////////////////// Parameters /////////////////////////////////////////////////
 
-standoff_height = 5;
-standoff_width = 5;
 
-board_height = 2;
-
-hmdi_connector_height = 4; // the max clearence needed
-
-rpi_base_length = 65;
-rpi_base_width = 30;
-rpi_base_corner_radius = 3;
-rpi_standoff_diameter = 6;
-rpi_standoff_screw_diameter = 0.75;
-rpi_standoff_height = 3;
-rpi_standoff_spacing_from_corner = 3.5;
-rpi_thickness = 1.5;
-
-
-cavity_length = 25;
-
-// Fan Peripherals
-fan_size = 30;
-fan_hole_spacing_from_corner = 3;
-fan_hole_radius = 1.8;
-
+base_length = 65;
+base_width = 31;
+base_corner_radius = 3;
+standoff_diameter = 6;
+standoff_screw_diameter = 0.75;
+standoff_height = 3;
+standoff_spacing_from_corner = 3.5;
+thickness = 1.5;
 
 hdmi_port_length = 11.5;
 hdmi_port_height = 3.5;
 hdmi_port_offset = 12.4;
+
 usb_port_1_offset = 41.4;
 usb_port_2_offset = 54;
 usb_port_length = 8;
+usb_port_height = 3;
+
 camera_zif_width = 20;
 camera_zif_length = 2;
+camera_zif_height = 2;
+
 sd_width = 12;
 sd_height = 1.5;
+
+fan_size = 30;
+fan_hole_spacing_from_corner = 3;
+fan_hole_radius = 1.8;
 fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
 
-rpi_case_wall_thickness = 3;
-rpi_case_bottom_height = rpi_thickness + rpi_case_wall_thickness + rpi_standoff_height + hdmi_port_height;
-rpi_case_top_height = 35;
-rpi_case_width = 2*rpi_case_wall_thickness + rpi_base_width;
-rpi_case_length = 2*rpi_case_wall_thickness + rpi_base_length + cavity_length;
-rpi_case_length = 2*rpi_case_wall_thickness + rpi_base_length;
-rpi_case_standoff_radius = 5;
-rpi_case_hole_radius = 1.5;
-rpi_mount_radius = 3;
+case_cavity_length = 25;
+case_wall_thickness = 3;
+case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
+case_top_height = 35;
+case_width = 2*case_wall_thickness + base_width;
+case_length = 2*case_wall_thickness + base_length + case_cavity_length;
+case_length = 2*case_wall_thickness + base_length;
+case_standoff_radius = 5;
+case_hole_radius = 1.5;
+case_mount_radius = 3;
 
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
 
 module base_cutout() {
-    rounded_corner_rectangle(rpi_base_length, rpi_base_width, cavity_length, rpi_base_corner_radius, 0 );
-}
-
-module rpi_case_corner_standoffs(height) {
-  linear_extrude(height=height){
-
-  }
+    rounded_corner_rectangle(base_length, base_width, case_cavity_length, base_corner_radius, 0 );
 }
 
 module base_corner_standoffs() {
-  mounting_holes(rpi_base_length - rpi_standoff_spacing_from_corner * 2, rpi_base_width - rpi_standoff_spacing_from_corner * 2, rpi_base_corner_radius, rpi_standoff_screw_diameter/2, 0);
+  mounting_holes(base_length - standoff_spacing_from_corner * 2, base_width - standoff_spacing_from_corner * 2, base_corner_radius, standoff_screw_diameter/2, 0);
 }
 
 module case_profile() {
-  rounded_corner_rectangle(rpi_case_length, rpi_case_width, cavity_length, rpi_case_standoff_radius, 0);
+  rounded_corner_rectangle(case_length, case_width, case_cavity_length, case_standoff_radius, 0);
 }
 
 module case_wall_profile() {
@@ -81,93 +70,110 @@ module case_wall_profile() {
   }
 }
 
-module rpi_case_bottom() {
+module case_wall(height) {
+  linear_extrude(height=height) {
+    union() {
+      case_wall_profile();
+      mounting_holes(case_length, case_width, case_standoff_radius, case_hole_radius, case_cavity_length);
+    }
+  }
+}
+
+module case_mount_profile() {
+  translate([case_length/2, - 2*case_mount_radius, 0]) {
+    difference() {
+      square([4*case_mount_radius, 4*case_mount_radius]);
+      translate([2*case_mount_radius, 2*case_mount_radius]) circle(r=case_mount_radius, $fn=100);
+    }
+  }
+  
+  translate([ -case_length/2 - case_cavity_length-4*case_mount_radius, - 2*case_mount_radius, 0]) {
+    difference() {
+      square([4*case_mount_radius, 4*case_mount_radius]);
+      translate([2*case_mount_radius, 2*case_mount_radius]) circle(r=case_mount_radius, $fn=100);
+    }
+  }
+}
+
+module case_bottom() {
   difference() {
     union() {
-        // The wall with the bottom mounting holes
-        linear_extrude(height=rpi_case_bottom_height) {
+        // The wall withitout the bottom mounting holes
+        case_wall(case_bottom_height);
+        
+        // Bottom of the case / The base profile
+        linear_extrude(height=case_wall_thickness) {
           union() {
-            mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
-            case_wall_profile();
+            case_profile();
+            case_mount_profile();
           }
         }
         
-        // Bottom of the case / The base profile
-        linear_extrude(height=rpi_case_wall_thickness) {
-          case_profile();
-        }
-        
         // Standoffs to hold the rapsberry pi from the base
-        translate([0, 0, rpi_case_wall_thickness]) {
-          linear_extrude(height=rpi_standoff_height) {
+        translate([0, 0, case_wall_thickness]) {
+          linear_extrude(height=standoff_height) {
             base_corner_standoffs();
           }
         }
     }
     
     // Remove the htmi port, usb ports etc. 
-    rpi_peripherals_case_bottom_cutout();
+    peripherals_case_bottom_cutout();
   }
 }
 
-module rpi_case_top() {
+module case_top() {
   union() {
-    rpi_case_corner_standoffs(rpi_case_top_height);
-    linear_extrude(height=rpi_case_top_height) {
-        union() {
-          mounting_holes(rpi_case_length, rpi_case_width, rpi_case_standoff_radius, rpi_case_hole_radius, cavity_length);
-        difference() {
-              case_profile();
-              base_cutout();
-          }
-        }
-          
-    }
-      
-    linear_extrude(height=rpi_case_wall_thickness) {
+    // The wall of the case 
+    case_wall(case_top_height);
+    peripherals_case_top_cutout();
+    linear_extrude(height=case_wall_thickness) {
       difference() {
           case_profile();
-          translate([rpi_base_length/2 - fan_size/2, 0, 0]){fan_profile();}
+          translate([base_length/2 - fan_size/2, 0, 0]){fan_profile();}
       }
     }
   }
 }
 
-module rpi_case_mount() {
-  linear_extrude(height=rpi_case_wall_thickness) {
-    difference() {
-        square([4*rpi_mount_radius, 4*rpi_mount_radius]);
-        translate([2*rpi_mount_radius, 2*rpi_mount_radius]) circle(r=rpi_mount_radius, $fn=100);
-    }
-  }
-}
-
-module rpi_case_mounts() {
-  translate([rpi_case_length/2, - 2*rpi_mount_radius, 0]) rpi_case_mount();
-  translate([-rpi_case_length/2 - 4 *rpi_mount_radius - cavity_length, - 2*rpi_mount_radius, 0]) rpi_case_mount();
-}
-
-module rpi_case_bottom_base() {
-    linear_extrude(height=rpi_case_wall_thickness) {
+module case_bottom_base() {
+    linear_extrude(height=case_wall_thickness) {
       base_cutout();
     }
 }
 
-module rpi_peripherals_case_bottom_cutout() {
-  translate([-rpi_case_length/2, -rpi_case_width/2, rpi_case_bottom_height - hdmi_port_height]) {
+module peripherals_case_bottom_cutout() {
+  translate([-base_length/2, -case_width/2, case_bottom_height - hdmi_port_height]) {
     linear_extrude(height=hdmi_port_height) {
       union() {
-        translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([hdmi_port_length, rpi_case_wall_thickness]); }
-        translate([usb_port_1_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, rpi_case_wall_thickness]); }
-        translate([usb_port_2_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, rpi_case_wall_thickness]); }
-        translate([rpi_case_length - rpi_case_wall_thickness, rpi_case_width/2 - camera_zif_width/2]) { square([rpi_case_wall_thickness, camera_zif_width]); }
-        translate([0, rpi_case_width/2 - sd_width/2]) { square([rpi_case_wall_thickness, sd_width]); }
+        translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([hdmi_port_length, case_wall_thickness]); }
+        translate([usb_port_1_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
+        translate([usb_port_2_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
+        translate([case_length - case_wall_thickness, case_width/2 - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
+        translate([0, case_width/2 - sd_width/2]) { square([case_wall_thickness, sd_width]); }
         translate([fan_cutout_vent_offset - 8, 0, 0]) { 
           for(i = [0:5]) {
-            translate([i*3, 0, 0]) {square([1.5, rpi_case_wall_thickness]);}
+            translate([i*3, 0, 0]) {square([1.5, case_wall_thickness]);}
             
           }
         }
+      }
+    }
+  }
+}
+
+module peripherals_case_top_cutout() {
+  translate([-case_length/2, 0, case_top_height]) {
+    union(){
+      linear_extrude(height=usb_port_height) {
+        union() {
+          translate([usb_port_1_offset - usb_port_length/2, case_width/2 - case_wall_thickness, 0]) { square([usb_port_length, case_wall_thickness]); }
+          translate([usb_port_2_offset - usb_port_length/2, case_width/2 - case_wall_thickness, 0]) { square([usb_port_length, case_wall_thickness]); }
+        }
+      }
+      
+      linear_extrude(height=camera_zif_height) {
+          translate([case_length - case_wall_thickness, - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
       }
     }
   }
@@ -243,25 +249,8 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
 
-translate([0, 50, 0]){
-  rpi_case_top();
-}
+//translate([0, 50, 0]){
+case_bottom();
+//}
+//case_top();
 
-rpi_case_bottom();
-
-
-//rpi_base_cutout()
-//rpi_base_corner_standoffs();
-//rpi_case_profile();
-//rpi_base_cutout();
-//rpi_case_profile();
-//rpi_base_cutout();
-
-
-//rpi_base_cutout();
-//rpi_case_bottom_base();
-
-//rpi_case_mounts();
-//rpi_base_corner_standoffs();
-
-//rpi_case_profile();
