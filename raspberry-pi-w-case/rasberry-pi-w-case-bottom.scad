@@ -8,10 +8,11 @@
 
 
 base_length = 65;
-base_width = 31;
+base_width = 30;
+base_tolerance = 1;
 base_corner_radius = 3;
 standoff_diameter = 6;
-standoff_screw_diameter = 0.75;
+standoff_screw_diameter = 1.75;
 standoff_height = 3;
 standoff_spacing_from_corner = 3.5;
 thickness = 1.5;
@@ -23,7 +24,9 @@ hdmi_port_offset = 12.4;
 usb_port_1_offset = 41.4;
 usb_port_2_offset = 54;
 usb_port_length = 8;
-usb_port_height = 3;
+//usb_port_height = 3;
+
+peripheral_cutout_width = hdmi_port_offset - usb_port_1_offset + hdmi_port_length/2 + usb_port_length/2;
 
 camera_zif_width = 20;
 camera_zif_length = 2;
@@ -37,14 +40,13 @@ fan_hole_spacing_from_corner = 3;
 fan_hole_radius = 1.8;
 fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
 
-case_cavity_length = 25;
-case_wall_thickness = 3;
+case_cavity_length = 5;
+case_wall_thickness = 2;
 case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
 case_top_height = 35;
-case_width = 2*case_wall_thickness + base_width;
-case_length = 2*case_wall_thickness + base_length + case_cavity_length;
-case_length = 2*case_wall_thickness + base_length;
-case_standoff_radius = 5;
+case_width = 2*case_wall_thickness + base_width + base_tolerance;
+case_length = 2*case_wall_thickness + base_length + base_tolerance;
+case_standoff_radius = 3;
 case_hole_radius = 1.5;
 case_mount_radius = 3;
 
@@ -52,7 +54,7 @@ case_mount_radius = 3;
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
 
 module base_cutout() {
-    rounded_corner_rectangle(base_length, base_width, case_cavity_length, base_corner_radius, 0 );
+    rounded_corner_rectangle(base_length + base_tolerance, base_width + base_tolerance, case_cavity_length, base_corner_radius, 0 );
 }
 
 module base_corner_standoffs() {
@@ -80,14 +82,14 @@ module case_wall(height) {
 }
 
 module case_mount_profile() {
-  translate([case_length/2, - 2*case_mount_radius, 0]) {
+  translate([case_length/2, - 2*case_mount_radius + case_cavity_length/2, 0]) {
     difference() {
       square([4*case_mount_radius, 4*case_mount_radius]);
       translate([2*case_mount_radius, 2*case_mount_radius]) circle(r=case_mount_radius, $fn=100);
     }
   }
   
-  translate([ -case_length/2 - case_cavity_length-4*case_mount_radius, - 2*case_mount_radius, 0]) {
+  translate([ -case_length/2 -4*case_mount_radius, - 2*case_mount_radius + case_cavity_length/2, 0]) {
     difference() {
       square([4*case_mount_radius, 4*case_mount_radius]);
       translate([2*case_mount_radius, 2*case_mount_radius]) circle(r=case_mount_radius, $fn=100);
@@ -103,10 +105,11 @@ module case_bottom() {
         
         // Bottom of the case / The base profile
         linear_extrude(height=case_wall_thickness) {
-          union() {
             case_profile();
+        }
+        
+        linear_extrude(height=case_wall_thickness*2) {
             case_mount_profile();
-          }
         }
         
         // Standoffs to hold the rapsberry pi from the base
@@ -119,6 +122,7 @@ module case_bottom() {
     
     // Remove the htmi port, usb ports etc. 
     peripherals_case_bottom_cutout();
+    bottom_air_flow_cutouts();
   }
 }
 
@@ -142,40 +146,25 @@ module case_bottom_base() {
     }
 }
 
-module peripherals_case_bottom_cutout() {
-  translate([-base_length/2, -case_width/2, case_bottom_height - hdmi_port_height]) {
-    linear_extrude(height=hdmi_port_height) {
-      union() {
-        translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([hdmi_port_length, case_wall_thickness]); }
-        translate([usb_port_1_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
-        translate([usb_port_2_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
-        translate([case_length - case_wall_thickness, case_width/2 - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
-        translate([0, case_width/2 - sd_width/2]) { square([case_wall_thickness, sd_width]); }
-        translate([fan_cutout_vent_offset - 8, 0, 0]) { 
-          for(i = [0:5]) {
-            translate([i*3, 0, 0]) {square([1.5, case_wall_thickness]);}
-            
-          }
-        }
+module bottom_air_flow_cutouts() {
+  linear_extrude(height=case_wall_thickness) {
+    vent_width = case_width - 3*standoff_diameter;
+    vent_length = case_length - 4*standoff_diameter;
+    vent_segment_length = vent_length/8;
+    vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
+    for(i = [0:7]) {
+      translate([i*vent_segment_length + vent_length_offset, -vent_width/2, 0]) {
+        square([vent_segment_length/2,vent_width]);
       }
     }
   }
 }
 
-module peripherals_case_top_cutout() {
-  translate([-case_length/2, 0, case_top_height]) {
-    union(){
-      linear_extrude(height=usb_port_height) {
-        union() {
-          translate([usb_port_1_offset - usb_port_length/2, case_width/2 - case_wall_thickness, 0]) { square([usb_port_length, case_wall_thickness]); }
-          translate([usb_port_2_offset - usb_port_length/2, case_width/2 - case_wall_thickness, 0]) { square([usb_port_length, case_wall_thickness]); }
-        }
-      }
-      
-      linear_extrude(height=camera_zif_height) {
-          translate([case_length - case_wall_thickness, - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
-      }
-    }
+module peripherals_case_bottom_cutout() {
+  translate([-base_length/2, -case_width/2, case_bottom_height-hdmi_port_height]) {
+   linear_extrude(height=hdmi_port_height) {
+    translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([base_length-2*standoff_diameter, case_wall_thickness]); }
+   } 
   }
 }
 
@@ -215,32 +204,32 @@ module disk(outer_radius, inner_radius) {
   }
 }
 
-module rounded_corner_rectangle(length = 0, width = 0, left_offset = 0, corner_radius = 0, corner_spacing = 0 ) {
+module rounded_corner_rectangle(length = 0, width = 0, top_offset = 0, corner_radius = 0, corner_spacing = 0 ) {
   hull()
   {
    // top left
-   translate([-length/2 - left_offset + corner_radius, width/2 - corner_radius, 0]) { disk(corner_radius, 0);}
+   translate([-length/2 + corner_radius, width/2 - corner_radius + top_offset, 0]) { disk(corner_radius, 0);}
 
    // bottom left
-   translate([-length/2 - left_offset + corner_radius, -width/2 + corner_radius, 0]) { disk(corner_radius, 0);}
+   translate([-length/2 + corner_radius, -width/2 + corner_radius, 0]) { disk(corner_radius, 0);}
    
    // top right
-   translate([length/2 - corner_radius, width/2 - corner_radius, 0]) { disk(corner_radius, 0);}
+   translate([length/2 - corner_radius, width/2 - corner_radius + top_offset, 0]) { disk(corner_radius, 0);}
    
    // bottom right
    translate([length/2 - corner_radius, corner_radius -width/2, 0]) { disk(corner_radius, 0);}
   }
 }
 
-module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radius=0, left_offset=0) {
+module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radius=0, top_offset=0) {
    // top left
-   translate([-grid_length/2 - left_offset, grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   translate([-grid_length/2, grid_width/2 + top_offset, 0]) { disk(standoff_radius, screw_radius);}
 
    // bottom left
-   translate([-grid_length/2 - left_offset, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   translate([-grid_length/2, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
    
    // top right
-   translate([grid_length/2, grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   translate([grid_length/2, grid_width/2 + top_offset, 0]) { disk(standoff_radius, screw_radius);}
    
    // bottom right
    translate([grid_length/2, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
@@ -250,7 +239,23 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
 
 //translate([0, 50, 0]){
-case_bottom();
-//}
-//case_top();
+//case_bottom();
 
+//case_profile();
+//base_cutout();
+//mounting_holes(case_length, case_width, case_standoff_radius, case_hole_radius, case_cavity_length);
+//}
+case_bottom();
+  difference() {
+//    case_profile();
+//    base_cutout();
+  }
+  //bottom_air_flow_cutouts();
+  //case_bottom();
+  //case_wall_profile();
+  //bottom_air_flow_cutouts();
+//peripherals_case_bottom_cutout();
+//square([base_length-2*standoff_diameter, case_wall_thickness]);
+//case_mount_profile();
+//case_top();
+//peripherals_case_bottom_cutout();

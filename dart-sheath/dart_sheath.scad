@@ -97,7 +97,15 @@ module half_sheath() {
 
 module bottom_half_sheath() {
   union() {
-    half_sheath();
+    difference() {
+      union(){
+        half_base();
+      }
+      translate([0,0,sheath_thickness/2-knife_thickness/2]){
+        half_knife(); 
+      }
+      nose_cutout();
+    }
     translate([0,0,sheath_thickness/4]){
       support_hole_template();
     }
@@ -106,7 +114,12 @@ module bottom_half_sheath() {
 
 module top_half_sheath() {
   difference() {
-    half_sheath();
+    difference() {
+      union(){
+        half_base();
+      }
+      nose_cutout();
+    }
     translate([0,0,sheath_thickness/4]){
       support_hole_template(support_hole_slop);
     }
