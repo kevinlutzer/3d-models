@@ -1,54 +1,95 @@
 /*
     Author: Kevin Lutzer
     Date Created: January 16 2018
-    Description: The bottom for a raspberry pi W case
+    Description: The bottom for a raspberry pi W case. This file contains the meta information to be used with Makerbot/Thingiverse Customizer.
 */
 
 /////////////////////////////////////////////////// Parameters /////////////////////////////////////////////////
 
+/* [Hidden] */
 
+//Length of the raspberry pi
 base_length = 65;
+//Width of the raspberry pi
 base_width = 30;
-base_tolerance = 1;
+//Radius of the four corners of the raspberry pi pcb
 base_corner_radius = 3;
-standoff_diameter = 6;
-standoff_screw_diameter = 1.75;
-standoff_height = 3;
-standoff_spacing_from_corner = 3.5;
+//Thickness of the raspberry pi pcb
 thickness = 1.5;
+//Height of the standoffs used to secure the raspberry pi to the case
+standoff_height = 3;
+//X-Y position of the center of the standoffs to the sides of the raspberry pi pcb
+standoff_spacing_from_corner = 3.5;
 
+//Length of the hdmi mini port on the raspberry pi
 hdmi_port_length = 11.5;
+//Height of the hdmi mini port
 hdmi_port_height = 3.5;
+//X-Position of the center of the hdmi mini port reference to the edge of the pcb 
 hdmi_port_offset = 12.4;
-
+//X-Position of the center of the usb port closest to the htmi port, reference to the center of the hdmi port
 usb_port_1_offset = 41.4;
+//X-Position of the center of second usb port closest reference to the center of the hdmi port
 usb_port_2_offset = 54;
+//Lenght of the usb ports
 usb_port_length = 8;
-//usb_port_height = 3;
+//Width of the raspberry pi camera connector
+camera_zif_width = 20;
+//Width of the sd card
+sd_width = 12;
+//Height of the sd card
+sd_height = 1.5;
+//Y-Position of the center of the SD card reference to the bottom left edge
+sd_offset = 12;
 
 peripheral_cutout_width = hdmi_port_offset - usb_port_1_offset + hdmi_port_length/2 + usb_port_length/2;
 
-camera_zif_width = 20;
-camera_zif_length = 2;
-camera_zif_height = 2;
+vent_width = case_width - 3*standoff_diameter;
+vent_length = case_length - 4*standoff_diameter;
+vent_segment_length = vent_length/8;
+vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
 
-sd_width = 12;
-sd_height = 1.5;
+case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
 
+case_width = 2*case_wall_thickness + base_width + base_tolerance;
+case_length = 2*case_wall_thickness + base_length + base_tolerance;
+
+
+/* [Case] */
+
+//Tolerance of the raspberry pi width and length. This number will effect the tightness of the PCB in the case
+base_tolerance = 1;
+//The diameter of the standoffs used to secure the raspberry pi to the case 
+standoff_diameter = 6;
+//Diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
+standoff_screw_diameter = 1.5;
+case_cavity_length = 5;
+case_wall_thickness = 2;
+case_top_height = 35;
+case_standoff_radius = 3;
+case_hole_radius = 1.5;
+case_mount_radius = 3;
+use_top_fan = true;
+use_top_air_inlet = true;
+use_case_mounts = true;
+
+/* [Fan] */
 fan_size = 30;
 fan_hole_spacing_from_corner = 3;
 fan_hole_radius = 1.8;
 fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
 
-case_cavity_length = 5;
-case_wall_thickness = 2;
-case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
-case_top_height = 35;
-case_width = 2*case_wall_thickness + base_width + base_tolerance;
-case_length = 2*case_wall_thickness + base_length + base_tolerance;
-case_standoff_radius = 3;
-case_hole_radius = 1.5;
-case_mount_radius = 3;
+
+
+
+
+
+
+
+
+
+
+
 
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
@@ -108,8 +149,10 @@ module case_bottom() {
             case_profile();
         }
         
-        linear_extrude(height=case_wall_thickness*2) {
-            case_mount_profile();
+        if (use_case_mounts) {
+          linear_extrude(height=case_wall_thickness*2) {
+              case_mount_profile();
+          }
         }
         
         // Standoffs to hold the rapsberry pi from the base
@@ -120,9 +163,9 @@ module case_bottom() {
         }
     }
     
-    // Remove the htmi port, usb ports etc. 
+    // Peripherals and other cutouts. 
     peripherals_case_bottom_cutout();
-    bottom_air_flow_cutouts();
+    bottom_air_flow_cutout();
   }
 }
 
@@ -130,7 +173,6 @@ module case_top() {
   union() {
     // The wall of the case 
     case_wall(case_top_height);
-    peripherals_case_top_cutout();
     linear_extrude(height=case_wall_thickness) {
       difference() {
           case_profile();
@@ -146,12 +188,8 @@ module case_bottom_base() {
     }
 }
 
-module bottom_air_flow_cutouts() {
+module bottom_air_flow_cutout() {
   linear_extrude(height=case_wall_thickness) {
-    vent_width = case_width - 3*standoff_diameter;
-    vent_length = case_length - 4*standoff_diameter;
-    vent_segment_length = vent_length/8;
-    vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
     for(i = [0:7]) {
       translate([i*vent_segment_length + vent_length_offset, -vent_width/2, 0]) {
         square([vent_segment_length/2,vent_width]);
@@ -160,33 +198,12 @@ module bottom_air_flow_cutouts() {
   }
 }
 
-module peripherals_case_bottom_cutoutasd() {
-  translate([-base_length/2, -case_width/2, case_bottom_height - hdmi_port_height]) {
-    linear_extrude(height=hdmi_port_height) {
-      union() {
-        translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([hdmi_port_length, case_wall_thickness]); }
-        translate([usb_port_1_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
-        translate([usb_port_2_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
-        translate([case_length - case_wall_thickness, case_width/2 - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
-        translate([0, case_width/2 - sd_width/2]) { square([case_wall_thickness, sd_width]); }
-        translate([fan_cutout_vent_offset - 8, 0, 0]) { 
-          for(i = [0:5]) {
-            translate([i*3, 0, 0]) {square([1.5, case_wall_thickness]);}
-            
-          }
-        }
-      }
-    }
-  }
-}
-
-
 module peripherals_case_bottom_cutout() {
   translate([0, 0, case_bottom_height-hdmi_port_height]) {
     union() {
       
       // USB/HDMI slot
-      linear_extrude(height=hdmi_port_height) {
+      linear_extrude(height=hdmi_port_height + 1) {
         translate([hdmi_port_offset - hdmi_port_length/2 -base_length/2, -case_width/2, -1]) { square([base_length-2*standoff_diameter, case_wall_thickness]); }
       }
       
@@ -213,9 +230,9 @@ module fan_profile() {
     mounting_holes(fan_size - fan_hole_spacing_from_corner*2, fan_size - fan_hole_spacing_from_corner*2, fan_hole_radius, 0, 0);
       
       // Concentric circles for fan grill
-      disk(12, 10);
-      disk(8, 6);
-      disk(4, 2); 
+      donut(12, 10);
+      donut(8, 6);
+      donut(4, 2); 
      }
    
      // Cross for extra stability
@@ -228,66 +245,49 @@ module fan_profile() {
  }
 }
 
-module disk(outer_radius, inner_radius) {
+// Creates a donut 
+module donut(outer_radius, inner_radius) {
   difference() {
     circle(r=outer_radius, $fn=100);
     circle(r=inner_radius, $fn=100);
   }
 }
 
+// Used for making all the 2D profiles with rounded corners
 module rounded_corner_rectangle(length = 0, width = 0, top_offset = 0, corner_radius = 0, corner_spacing = 0 ) {
   hull()
   {
    // top left
-   translate([-length/2 + corner_radius, width/2 - corner_radius + top_offset, 0]) { disk(corner_radius, 0);}
+   translate([-length/2 + corner_radius, width/2 - corner_radius + top_offset, 0]) { donut(corner_radius, 0);}
 
    // bottom left
-   translate([-length/2 + corner_radius, -width/2 + corner_radius, 0]) { disk(corner_radius, 0);}
+   translate([-length/2 + corner_radius, -width/2 + corner_radius, 0]) { donut(corner_radius, 0);}
    
    // top right
-   translate([length/2 - corner_radius, width/2 - corner_radius + top_offset, 0]) { disk(corner_radius, 0);}
+   translate([length/2 - corner_radius, width/2 - corner_radius + top_offset, 0]) { donut(corner_radius, 0);}
    
    // bottom right
-   translate([length/2 - corner_radius, corner_radius -width/2, 0]) { disk(corner_radius, 0);}
+   translate([length/2 - corner_radius, corner_radius -width/2, 0]) { donut(corner_radius, 0);}
   }
 }
 
+// Used for creating the 2D representation of a standoff set
 module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radius=0, top_offset=0) {
    // top left
-   translate([-grid_length/2, grid_width/2 + top_offset, 0]) { disk(standoff_radius, screw_radius);}
+   translate([-grid_length/2, grid_width/2 + top_offset, 0]) { donut(standoff_radius, screw_radius);}
 
    // bottom left
-   translate([-grid_length/2, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   translate([-grid_length/2, -grid_width/2, 0]) { donut(standoff_radius, screw_radius);}
    
    // top right
-   translate([grid_length/2, grid_width/2 + top_offset, 0]) { disk(standoff_radius, screw_radius);}
+   translate([grid_length/2, grid_width/2 + top_offset, 0]) { donut(standoff_radius, screw_radius);}
    
    // bottom right
-   translate([grid_length/2, -grid_width/2, 0]) { disk(standoff_radius, screw_radius);}
+   translate([grid_length/2, -grid_width/2, 0]) { donut(standoff_radius, screw_radius);}
 } 
 
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
 
-//translate([0, 50, 0]){
+case_top();
 //case_bottom();
-
-//case_profile();
-//base_cutout();
-//mounting_holes(case_length, case_width, case_standoff_radius, case_hole_radius, case_cavity_length);
-//}
-// peripherals_case_bottom_cutout();
-case_bottom();
-  difference() {
-//    case_profile();
-//    base_cutout();
-  }
-  //bottom_air_flow_cutouts();
-  //case_bottom();
-  //case_wall_profile();
-  //bottom_air_flow_cutouts();
-//peripherals_case_bottom_cutout();
-//square([base_length-2*standoff_diameter, case_wall_thickness]);
-//case_mount_profile();
-//case_top();
-//peripherals_case_bottom_cutout();
