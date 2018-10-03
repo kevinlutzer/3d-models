@@ -6,6 +6,32 @@
 
 /////////////////////////////////////////////////// Parameters /////////////////////////////////////////////////
 
+
+/* [Case] */
+
+//Tolerance of the raspberry pi width and length. This number will effect the tightness of the PCB in the case
+base_tolerance = 1;
+//The diameter of the standoffs used to secure the raspberry pi to the case 
+standoff_diameter = 6;
+//Diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
+standoff_screw_diameter = 1.5;
+case_cavity_length = 5;
+case_wall_thickness = 2;
+case_top_height = 35;
+case_standoff_radius = 3;
+case_hole_radius = 1.5;
+case_mount_radius = 3;
+air_management = 0;
+
+/* [Fan] */
+
+// is the size of the fan. It usually represents the length of the one of the sides of a square fan
+fan_size = 30;
+// is the X-Y offset of the mounting holes reference to the nearest sides
+fan_hole_spacing_from_corner = 3;
+// is the radius of the fan hole
+fan_hole_radius = 1.8;
+
 /* [Hidden] */
 
 //Length of the raspberry pi
@@ -20,6 +46,11 @@ thickness = 1.5;
 standoff_height = 3;
 //X-Y position of the center of the standoffs to the sides of the raspberry pi pcb
 standoff_spacing_from_corner = 3.5;
+standoff_diameter = 6;
+
+
+case_width = 2*case_wall_thickness + base_width + base_tolerance;
+case_length = 2*case_wall_thickness + base_length + base_tolerance;
 
 //Length of the hdmi mini port on the raspberry pi
 hdmi_port_length = 11.5;
@@ -42,6 +73,8 @@ sd_height = 1.5;
 //Y-Position of the center of the SD card reference to the bottom left edge
 sd_offset = 12;
 
+case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
+
 peripheral_cutout_width = hdmi_port_offset - usb_port_1_offset + hdmi_port_length/2 + usb_port_length/2;
 
 vent_width = case_width - 3*standoff_diameter;
@@ -49,47 +82,10 @@ vent_length = case_length - 4*standoff_diameter;
 vent_segment_length = vent_length/8;
 vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
 
-case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
-
-case_width = 2*case_wall_thickness + base_width + base_tolerance;
-case_length = 2*case_wall_thickness + base_length + base_tolerance;
 
 
-/* [Case] */
 
-//Tolerance of the raspberry pi width and length. This number will effect the tightness of the PCB in the case
-base_tolerance = 1;
-//The diameter of the standoffs used to secure the raspberry pi to the case 
-standoff_diameter = 6;
-//Diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
-standoff_screw_diameter = 1.5;
-case_cavity_length = 5;
-case_wall_thickness = 2;
-case_top_height = 35;
-case_standoff_radius = 3;
-case_hole_radius = 1.5;
-case_mount_radius = 3;
-use_top_fan = true;
-use_top_air_inlet = true;
-use_case_mounts = true;
-
-/* [Fan] */
-fan_size = 30;
-fan_hole_spacing_from_corner = 3;
-fan_hole_radius = 1.8;
 fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
@@ -149,7 +145,7 @@ module case_bottom() {
             case_profile();
         }
         
-        if (use_case_mounts) {
+        if (air_management) {
           linear_extrude(height=case_wall_thickness*2) {
               case_mount_profile();
           }
@@ -172,11 +168,13 @@ module case_bottom() {
 module case_top() {
   union() {
     // The wall of the case 
-    case_wall(case_top_height);
+    case_wall(case_top_height + case_wall_thickness);
     linear_extrude(height=case_wall_thickness) {
       difference() {
           case_profile();
-          translate([base_length/2 - fan_size/2, 0, 0]){fan_profile();}
+          //if (air_management) {
+            //translate([base_length/2 - fan_size/2, 0, 0]){fan_profile();}
+          //}
       }
     }
   }
@@ -289,5 +287,9 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
 
-case_top();
+//case_top();
+linear_extrude(height=22.5) {
+    donut(5, 3);
+}
+
 //case_bottom();
