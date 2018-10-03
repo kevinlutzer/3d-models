@@ -160,11 +160,42 @@ module bottom_air_flow_cutouts() {
   }
 }
 
+module peripherals_case_bottom_cutoutasd() {
+  translate([-base_length/2, -case_width/2, case_bottom_height - hdmi_port_height]) {
+    linear_extrude(height=hdmi_port_height) {
+      union() {
+        translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([hdmi_port_length, case_wall_thickness]); }
+        translate([usb_port_1_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
+        translate([usb_port_2_offset - usb_port_length/2, 0, 0]) { square([usb_port_length, case_wall_thickness]); }
+        translate([case_length - case_wall_thickness, case_width/2 - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
+        translate([0, case_width/2 - sd_width/2]) { square([case_wall_thickness, sd_width]); }
+        translate([fan_cutout_vent_offset - 8, 0, 0]) { 
+          for(i = [0:5]) {
+            translate([i*3, 0, 0]) {square([1.5, case_wall_thickness]);}
+            
+          }
+        }
+      }
+    }
+  }
+}
+
+
 module peripherals_case_bottom_cutout() {
-  translate([-base_length/2, -case_width/2, case_bottom_height-hdmi_port_height]) {
-   linear_extrude(height=hdmi_port_height) {
-    translate([hdmi_port_offset - hdmi_port_length/2, 0, 0]) { square([base_length-2*standoff_diameter, case_wall_thickness]); }
-   } 
+  translate([0, 0, case_bottom_height-hdmi_port_height]) {
+    union() {
+      
+      // USB/HDMI slot
+      linear_extrude(height=hdmi_port_height) {
+        translate([hdmi_port_offset - hdmi_port_length/2 -base_length/2, -case_width/2, -1]) { square([base_length-2*standoff_diameter, case_wall_thickness]); }
+      }
+      
+      // Zif (Camera) connector and SD card connector slots
+      linear_extrude(height=hdmi_port_height) { 
+        translate([case_length/2 - case_wall_thickness, - camera_zif_width/2]) { square([case_wall_thickness, camera_zif_width]); }
+        translate([-case_length/2, - sd_width/2]) { square([case_wall_thickness, sd_width]); }
+      }
+    } 
   }
 }
 
@@ -245,6 +276,7 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 //base_cutout();
 //mounting_holes(case_length, case_width, case_standoff_radius, case_hole_radius, case_cavity_length);
 //}
+// peripherals_case_bottom_cutout();
 case_bottom();
   difference() {
 //    case_profile();
