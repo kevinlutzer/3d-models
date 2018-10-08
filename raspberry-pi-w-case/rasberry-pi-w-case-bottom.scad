@@ -80,13 +80,14 @@ sd_offset = 16.9;
 //The height of the bottom of the raspberry pi case (Z axis)
 case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
 
+vent_segment_amount = 8;
+
 
 // Refactor
 peripheral_cutout_width = hdmi_port_offset - usb_port_1_offset + hdmi_port_length/2 + usb_port_length/2;
 vent_width = case_width - 3*standoff_diameter;
 vent_length = case_length - 4*standoff_diameter;
-vent_segment_length = vent_length/8;
-vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
+vent_segment_length = vent_length/vent_segment_amount;
 fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
 
 
@@ -163,7 +164,7 @@ module case_bottom() {
     
     // Peripherals and other cutouts. 
     peripherals_case_bottom_cutout();
-    bottom_air_flow_cutout();
+    vent_cutout();
   }
 }
 
@@ -188,11 +189,17 @@ module case_bottom_base() {
     }
 }
 
-module bottom_air_flow_cutout() {
-  linear_extrude(height=case_wall_thickness) {
-    for(i = [0:7]) {
-      translate([i*vent_segment_length + vent_length_offset, -vent_width/2, 0]) {
-        square([vent_segment_length/2,vent_width]);
+module vent_profie() {
+  translate([0,vent_width/2,0]){circle(d=vent_segment_length/2, $fn=100);}
+  translate([-vent_segment_length/4,-vent_width/2,0]){square([vent_segment_length/2,vent_width]);}
+  translate([0,-vent_width/2,0]){circle(d=vent_segment_length/2, $fn=100);}
+}
+
+module vent_cutout() {
+    linear_extrude(height=case_wall_thickness) {
+    for(i = [0:vent_segment_amount-1]) {
+      translate([i*vent_segment_length - vent_length/2 + vent_segment_length/2, 0, 0]) {
+        vent_profie();
       }
     }
   }
@@ -288,6 +295,6 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
-
+vent_cutout();
 //case_top();
-case_bottom();
+//case_bottom();
