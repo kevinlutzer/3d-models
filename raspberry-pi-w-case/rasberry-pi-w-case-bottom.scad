@@ -12,29 +12,30 @@
 //Is the olerance of the raspberry pi width and length. This number will effect the tightness of the PCB in the case
 base_tolerance = 1;
 //Is the diameter of the standoffs used to secure the raspberry pi to the case 
-standoff_diameter = 6;
+standoff_diameter = 5;
 //Is the diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
 standoff_screw_diameter = 1.5;
 //Is the width of the cavity added for extra space to store electronics and wires (Y axis)
-case_cavity_width = 5;
+case_cavity_width = 10;
 //Is the thickness of the case
 case_wall_thickness = 2;
 //Is the height of the top portion of the case. This value represents the difference between the top face of the case and the top of the hdmi port. 
-case_top_height = 35;
+case_top_height = 10;
 //Is the radius of the standoffs used to secure the two parts of the case together
 case_standoff_radius = 3;
 //Is the radius of the screw used to secure the two parts of the case together
 case_hole_radius = 1.5;
 //Is the radius of the screw used to mount the case onto some panel. 
 case_mount_radius = 3;
-
+case_top_heat_management = "heat_sink"; //[none:No Management, fan:Fan, vents:Vents, heat_sink:Heat Sink];
+heat_sink_size = 15;
 /* [Fan] */
 
 // Is the size of the fan. It usually represents the length of the one of the sides of a square fan
 fan_size = 30;
 // Is the X-Y offset of the mounting holes reference to the nearest sides
 fan_hole_spacing_from_corner = 3;
-// iIs the radius of the fan hole
+// Is the radius of the fan hole
 fan_hole_radius = 1.8;
 
 /* [Hidden] */
@@ -77,6 +78,8 @@ sd_width = 12;
 sd_height = 1.5;
 //Y-Position of the center of the SD card reference to the bottom left edge
 sd_offset = 16.9;
+heat_sink_width_offset = 16; 
+heat_sink_length_offset = 40;
 //The height of the bottom of the raspberry pi case (Z axis)
 case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
 
@@ -147,12 +150,6 @@ module case_bottom() {
             case_profile();
         }
         
-        //if (air_management) {
-          //linear_extrude(height=case_wall_thickness*2) {
-          //    case_mount_profile();
-          //}
-        //}
-        
         // Standoffs to hold the rapsberry pi from the base
         translate([0, 0, case_wall_thickness]) {
           linear_extrude(height=standoff_height) {
@@ -163,7 +160,7 @@ module case_bottom() {
     
     // Peripherals and other cutouts. 
     peripherals_case_bottom_cutout();
-    bottom_air_flow_cutout();
+    air_flow_cutout();
   }
 }
 
@@ -171,13 +168,23 @@ module case_top() {
   union() {
     // The wall of the case 
     case_wall(case_top_height + case_wall_thickness);
-    linear_extrude(height=case_wall_thickness) {
-      difference() {
+    
+    // Case profile with selected air management cutouts
+    difference() {
+        linear_extrude(height=case_wall_thickness) {
           case_profile();
-          //if (air_management) {
-            //translate([base_length/2 - fan_size/2, 0, 0]){fan_profile();}
-          //}
-      }
+        }
+        difference() {
+            if (case_top_heat_management == "fan") {
+                fan_cutout();
+            }
+            if (case_top_heat_management == "vents") {
+                air_flow_cutout();
+            }
+            if (case_top_heat_management == "heat_sink") {
+                heat_sink_cutout();
+            }
+        }
     }
   }
 }
@@ -188,7 +195,7 @@ module case_bottom_base() {
     }
 }
 
-module bottom_air_flow_cutout() {
+module air_flow_cutout() {
   linear_extrude(height=case_wall_thickness) {
     for(i = [0:7]) {
       translate([i*vent_segment_length + vent_length_offset, -vent_width/2, 0]) {
@@ -214,6 +221,18 @@ module peripherals_case_bottom_cutout() {
       }
     } 
   }
+}
+
+module heat_sink_cutout() {
+    translate([-case_length/2 + heat_sink_length_offset - heat_sink_size/2, -case_width/2 + heat_sink_width_offset - heat_sink_size/2,0]) {
+        cube([heat_sink_size, heat_sink_size, case_wall_thickness]);
+    }
+}
+
+module fan_cutout() {
+    linear_extrude(height=case_wall_thickness) {
+        fan_profile();
+    }
 }
 
 module fan_profile() {
@@ -288,6 +307,9 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
+//fan_profile();
+//translate([0, case_width + case_standoff_radius*10, 0]) {case_top();}
+//case_bottom();
+case_top();
 
-//case_top();
-case_bottom();
+//heat_sink_cutout();
