@@ -9,33 +9,41 @@
 
 /* [Case] */
 
-//Is the olerance of the raspberry pi width and length. This number will effect the tightness of the PCB in the case
-base_tolerance = 1;
+//Is the side to show in the customizer viewer and make an stl file from
+side_to_show = "both"; //[both:Both of the parts of the case, top: Top part of the case, bottom: bottom part of the case]
+//Is the olerance of the raspberry pi width and length. This number will effect the tightness of the raspberry pi PCB in the case
+base_tolerance = 1; //[0.5, 1, 1.5, 2]
 //Is the diameter of the standoffs used to secure the raspberry pi to the case 
 standoff_diameter = 5;
 //Is the diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
 standoff_screw_diameter = 1.5;
 //Is the width of the cavity added for extra space to store electronics and wires (Y axis)
-case_cavity_width = 10;
+case_cavity_width = 5;
 //Is the thickness of the case
 case_wall_thickness = 2;
 //Is the height of the top portion of the case. This value represents the difference between the top face of the case and the top of the hdmi port. 
-case_top_height = 10;
+case_top_height = 30;
 //Is the radius of the standoffs used to secure the two parts of the case together
 case_standoff_radius = 3;
 //Is the radius of the screw used to secure the two parts of the case together
 case_hole_radius = 1.5;
 //Is the radius of the screw used to mount the case onto some panel. 
 case_mount_radius = 3;
-case_top_heat_management = "heat_sink"; //[none:No Management, fan:Fan, vents:Vents, heat_sink:Heat Sink];
-heat_sink_size = 15;
-/* [Fan] */
+//Is the user selected heat management for the top sidef of the case. Note that it is recommended to use atleast "Vents". If "Fan" is selected you can adjust the "Fan" parameters to match the your fan  
+case_top_heat_management = "fan"; //[none:No Management, fan:Fan, vents:Vents];
+//Is the amount of segments used to make the vents for the bottom and top of the case. 
+vent_segment_amount = 8;
+//Is to select whether or not you want the top part of the case to have vents on the same side as the usb and hdmi ports.
+use_top_side_vents = true; //[true, false]
+//Is to select whether or not you want the bottom part of the case to have vents underneath the spot the raspberry pi will sit
+use_bottom_vents = true; //[true, false]
 
-// Is the size of the fan. It usually represents the length of the one of the sides of a square fan
+/* [Fan] */
+// Is the size of the fan. Assuming your fan is square, it represents the length between two parallel sides. 
 fan_size = 30;
 // Is the X-Y offset of the mounting holes reference to the nearest sides
 fan_hole_spacing_from_corner = 3;
-// Is the radius of the fan hole
+// Is the radius of the mounting holes for the fan
 fan_hole_radius = 1.8;
 
 /* [Hidden] */
@@ -44,6 +52,10 @@ fan_hole_radius = 1.8;
 base_length = 65;
 //Width of the raspberry pi
 base_width = 30;
+//Length of the raspberry pi accounting for tolerances
+base_length_with_tolerance = base_length + base_tolerance;
+//Width of the raspberry pi accounting for tolerances
+base_width_with_tolerance = base_width + base_tolerance;
 //Radius of the four corners of the raspberry pi pcb
 base_corner_radius = 3;
 //Thickness of the raspberry pi pcb
@@ -55,9 +67,9 @@ standoff_spacing_from_corner = 3.5;
 //Diameter of the standoffs used to support the raspberry pi from the case
 standoff_diameter = 6;
 //Width of the raspiberry pi (Y axis)
-case_width = 2*case_wall_thickness + base_width + base_tolerance;
+case_width = 2*case_wall_thickness + base_width_with_tolerance;
 //Length of the raspberry pi (X axis)
-case_length = 2*case_wall_thickness + base_length + base_tolerance;
+case_length = 2*case_wall_thickness + base_length_with_tolerance;
 //Length of the hdmi mini port on the raspberry pi (X axis)
 hdmi_port_length = 11.5;
 //Height of the hdmi mini port (Z axis)
@@ -74,39 +86,40 @@ usb_port_length = 8;
 camera_zif_width = 20;
 //Width of the sd card
 sd_width = 12;
-//Height of the sd card
-sd_height = 1.5;
 //Y-Position of the center of the SD card reference to the bottom left edge
 sd_offset = 16.9;
-heat_sink_width_offset = 16; 
-heat_sink_length_offset = 40;
 //The height of the bottom of the raspberry pi case (Z axis)
 case_bottom_height = thickness + case_wall_thickness + standoff_height + hdmi_port_height;
-
-
-// Refactor
-peripheral_cutout_width = hdmi_port_offset - usb_port_1_offset + hdmi_port_length/2 + usb_port_length/2;
-vent_width = case_width - 3*standoff_diameter;
+//The width of the vents for the bottom portion of the case
+vent_bottom_width = case_width - 3*standoff_diameter;
+//The width of the vents for the side of the top portion of the case
+vent_top_side_width = (case_top_height - 4*case_wall_thickness);
+//The width of the vents for the top portion of the case
+vent_top_width = (case_width - 4*case_wall_thickness);
+//The total length of the vent. 
 vent_length = case_length - 4*standoff_diameter;
-vent_segment_length = vent_length/8;
-vent_length_offset = -case_length/2 + vent_width/2 + vent_segment_length;
-fan_cutout_vent_offset = (usb_port_1_offset - hdmi_port_offset) /2 + hdmi_port_offset;
+//The segment length of the vent. This is determined based on the amount of segments specified by the user
+vent_segment_length = vent_length/vent_segment_amount;
 
 
 /////////////////////////////////////////////////// Modules //////////////////////////////////////////////////
 
+// represents the profile of the raspberry pi pcb
 module base_cutout() {
     rounded_corner_rectangle(base_length + base_tolerance, base_width + base_tolerance, case_cavity_width, base_corner_radius, 0 );
 }
 
+// the standoff profile used to secure the two parts of the case together
 module base_corner_standoffs() {
   mounting_holes(base_length - standoff_spacing_from_corner * 2, base_width - standoff_spacing_from_corner * 2, base_corner_radius, standoff_screw_diameter/2, 0);
 }
 
+// represents the profile of the top and bottom surfaces of the case
 module case_profile() {
   rounded_corner_rectangle(case_length, case_width, case_cavity_width, case_standoff_radius, 0);
 }
 
+// the profile of the case wall which is the difference between the base and case profiles
 module case_wall_profile() {
   difference() {
     case_profile();
@@ -114,6 +127,7 @@ module case_wall_profile() {
   }
 }
 
+// The extruded case wall profile
 module case_wall(height) {
   linear_extrude(height=height) {
     union() {
@@ -123,14 +137,16 @@ module case_wall(height) {
   }
 }
 
-module case_mount_profile() {
+// The profile of the tab mounts used to secure the bottom part of the case to a panel. 
+module case_mounts_profile() {
+  // right mount
   translate([case_length/2, - 2*case_mount_radius + case_cavity_width/2, 0]) {
     difference() {
       square([4*case_mount_radius, 4*case_mount_radius]);
       translate([2*case_mount_radius, 2*case_mount_radius]) circle(r=case_mount_radius, $fn=100);
     }
   }
-  
+  // left mount
   translate([ -case_length/2 -4*case_mount_radius, - 2*case_mount_radius + case_cavity_width/2, 0]) {
     difference() {
       square([4*case_mount_radius, 4*case_mount_radius]);
@@ -139,6 +155,7 @@ module case_mount_profile() {
   }
 }
 
+// The full bottom portion of the case including the cutouts for ventalation and peripherals
 module case_bottom() {
   difference() {
     union() {
@@ -160,51 +177,59 @@ module case_bottom() {
     
     // Peripherals and other cutouts. 
     peripherals_case_bottom_cutout();
-    air_flow_cutout();
+    vent_cutout(vent_bottom_width);
   }
 }
 
+// The full top portion of the case including the cutouts for ventalation and peripherals
 module case_top() {
-  union() {
-    // The wall of the case 
-    case_wall(case_top_height + case_wall_thickness);
-    
-    // Case profile with selected air management cutouts
-    difference() {
-        linear_extrude(height=case_wall_thickness) {
-          case_profile();
-        }
-        difference() {
-            if (case_top_heat_management == "fan") {
-                fan_cutout();
-            }
-            if (case_top_heat_management == "vents") {
-                air_flow_cutout();
-            }
-            if (case_top_heat_management == "heat_sink") {
-                heat_sink_cutout();
-            }
-        }
+  difference() {
+    //The frame of the top portion of the case including the standoffs
+    union() {
+      linear_extrude(height=case_wall_thickness){
+        case_profile();
+      }
+      case_wall(case_top_height);
+    }
+
+    //Vent cutout if the user has selected it
+    if (case_top_heat_management == "vents") {
+      // center vent in center of the case accounting for the cavity width
+      translate([0,case_cavity_width/2,0]){vent_cutout(vent_top_width);}
+    }
+
+    //Fan cutout if the user has selected it
+    if (case_top_heat_management == "fan") {
+      // center fant in center of the case accounting for the cavity width
+      translate([0,case_cavity_width/2,0]){fan_cutout();}
+    }
+
+    //Have side vent cutouts by default if they can fit
+    if (vent_top_side_width > case_wall_thickness*8) {
+      translate([0,-base_width_with_tolerance/2, (case_top_height + case_wall_thickness)/2]){rotate([90,0,0]){vent_cutout(vent_top_side_width);}}
     }
   }
 }
 
-module case_bottom_base() {
-    linear_extrude(height=case_wall_thickness) {
-      base_cutout();
-    }
+// The profile of an individual vent segment used for air flow in the case
+module vent_segment_profie(width = 0) {
+  translate([0,width/2,0]){circle(d=vent_segment_length/2, $fn=100);}
+  translate([-vent_segment_length/4,-width/2,0]){square([vent_segment_length/2,width]);}
+  translate([0,-width/2,0]){circle(d=vent_segment_length/2, $fn=100);}
 }
 
-module air_flow_cutout() {
-  linear_extrude(height=case_wall_thickness) {
-    for(i = [0:7]) {
-      translate([i*vent_segment_length + vent_length_offset, -vent_width/2, 0]) {
-        square([vent_segment_length/2,vent_width]);
+// The base vent cutout. The length will always be constant, but the width can be passed in to adjust sizing for the portions of the case this vent cutout will be used on 
+module vent_cutout(width = 0) {
+    linear_extrude(height=case_wall_thickness) {
+    for(i = [0:vent_segment_amount-1]) {
+      translate([i*vent_segment_length - vent_length/2 + vent_segment_length/2, 0, 0]) {
+        vent_segment_profie(width);
       }
     }
   }
 }
 
+// cutout for the usb, hdmi, camera, sd card slots
 module peripherals_case_bottom_cutout() {
   translate([0, 0, case_bottom_height-hdmi_port_height]) {
     union() {
@@ -223,18 +248,14 @@ module peripherals_case_bottom_cutout() {
   }
 }
 
-module heat_sink_cutout() {
-    translate([-case_length/2 + heat_sink_length_offset - heat_sink_size/2, -case_width/2 + heat_sink_width_offset - heat_sink_size/2,0]) {
-        cube([heat_sink_size, heat_sink_size, case_wall_thickness]);
-    }
-}
-
+// extruded fan profile used for the fan cutout on the top of the case
 module fan_cutout() {
     linear_extrude(height=case_wall_thickness) {
         fan_profile();
     }
 }
 
+// simple fan profile 
 module fan_profile() {
   // Get the negative of the structure 
   difference() {
@@ -290,7 +311,7 @@ module rounded_corner_rectangle(length = 0, width = 0, top_offset = 0, corner_ra
   }
 }
 
-// Used for creating the 2D representation of a standoff set
+// Used for creating the 2D representation of a 4x4 standoff set
 module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radius=0, top_offset=0) {
    // top left
    translate([-grid_length/2, grid_width/2 + top_offset, 0]) { donut(standoff_radius, screw_radius);}
@@ -307,9 +328,16 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 
 
 /////////////////////////////////////////////////// Prototypes /////////////////////////////////////////////////
-//fan_profile();
-//translate([0, case_width + case_standoff_radius*10, 0]) {case_top();}
-//case_bottom();
-case_top();
 
-//heat_sink_cutout();
+if (side_to_show == "both") {
+  translate([0,case_width/2 + case_cavity_width + case_standoff_radius*4, 0]){case_top();}
+  translate([0,-case_width/2, 0]){case_bottom();}
+}
+
+if (side_to_show == "top") {
+  case_top();
+}
+
+if (side_to_show == "bottom") {
+  case_bottom();
+}
