@@ -9,7 +9,7 @@
 
 /* [Case] */
 //Is to select whether or not you want the top part of the case to have a cutout for header. It is recommend to not select this if you plan on using a fan mount 
-use_header = true; // [true, false] 
+use_header = false; // [true, false] 
 //Is to select whether or not you want the top part of the case to have vents on the same side as the usb and hdmi ports.
 use_top_side_vents = true; //[true, false]
 //Is to select whether or not you want the bottom part of the case to have vents underneath the spot the raspberry pi will sit
@@ -17,9 +17,9 @@ use_bottom_vents = true; //[true, false]
 //Is to slect whether or not you want some panel mounting tabs on the bottom portion of the case
 use_panel_mounts = true; //[true, false]
 //Is the side to show in the customizer viewer and make an stl file from
-side_to_show = "both"; //[both:Both of the parts of the case, top: Top part of the case, bottom: bottom part of the case]
+side_to_show = "bottom"; //[both:Both of the parts of the case, top: Top part of the case, bottom: bottom part of the case]
 //Is the user selected heat management for the top sidef of the case. Note that it is recommended to use atleast "Vents". If "Fan" is selected you can adjust the "Fan" parameters to match the your fan  
-case_top_heat_management = "vents"; //[none:No Management, fan:Fan, vents:Vents];
+case_top_heat_management = "none"; //[none:No Management, fan:Fan, vents:Vents];
 //Is the tolerance of the raspberry pi pcb width and length. This number will effect the tightness of the raspberry pi pcb in the case
 pcb_tolerance = 1; //[0, 0.5, 1, 1.5, 2]
 //Is the tolerance of the header width and length
@@ -29,11 +29,11 @@ standoff_diameter = 5;
 //Is the diameter of the srew hole in the standoffs that are used to secure the raspberry pi to the case
 standoff_screw_diameter = 1.5;
 //Is the width of the cavity added for extra space to store electronics and wires. It effects the total width of the case. This cavity is added to the header side of the case.
-case_cavity_width = 0;
+case_cavity_width = 5;
 //Is the thickness of the walls of the case. This value is used for both the top and bottom parts of the case.
 case_wall_thickness = 2;
 //Is the height of the top portion of the case. This value represents the internal height of the top portion of the case. For example, if you want to add a perma proto hat from adafruit to your raspberry pi project set this number to 20 and you will have enough room for it in your case! If you want a minimalist case you could set this value to zero to have a flat top. 
-case_top_height = 30;
+case_top_height = 26.5;
 //Is the radius of the standoffs used to secure the two parts of the case together
 case_standoff_radius = 3;
 //Is the radius of the screw used to secure the two parts of the case together
@@ -67,7 +67,7 @@ pcb_corner_radius = 3;
 //Thickness of the raspberry pi pcb
 thickness = 1.5;
 //Height of the standoffs used to secure the raspberry pi to the case
-standoff_height = 3;
+standoff_height = 1.5;
 //X-Y position of the center of the standoffs to the sides of the raspberry pi pcb
 standoff_spacing_from_corner = 3.5;
 //Diameter of the standoffs used to support the raspberry pi from the case
@@ -233,6 +233,7 @@ module case_top() {
     //Have side vent cutouts by default if they can fit
     if (use_top_side_vents) {
       translate([0,-pcb_width_with_tolerance/2, (case_top_height + case_wall_thickness)/2]){rotate([90,0,0]){vent_cutout(vent_top_side_width);}}
+      translate([0, case_cavity_width + pcb_width_with_tolerance/2 + case_wall_thickness, (          case_top_height + case_wall_thickness)/2]){rotate([90,0,0]){vent_cutout(vent_top_side_width);}}
     }
   }
 }
@@ -367,11 +368,27 @@ module mounting_holes(grid_length=0, grid_width=0, standoff_radius=0, screw_radi
 // }
 
 // if (side_to_show == "top") {
-  case_top();
+/*
+    difference() {
+        case_top();    
+        translate([-12.5, -5.5, 0])
+            linear_extrude(height=3)
+                square([8,8]);
+        
+        translate([10, 5, 0])
+            linear_extrude(height=3)
+                square([11,8]);
+        
+        translate([9, -13, 0])
+            linear_extrude(height=3)
+                square([9,13]);
+    }
+    */
+
 // }
 
 // if (side_to_show == "bottom") {
-    //case_bottom();
+    case_bottom();
 // }
 
 //header_cutout();
