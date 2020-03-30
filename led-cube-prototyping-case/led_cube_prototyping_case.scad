@@ -8,11 +8,21 @@
 pcb_width = 72;
 pcb_length = 92;
 pcb_height_from_bottom = 3;
-wall_thickness = 4;
-bottom_thickness = 4;
+wall_thickness = 2;
+bottom_thickness = 2;
 wall_height = 16;
 screw_position = 4;
 
+
+// Hole dimensions for led points
+hole_width = 35;
+hole_length = 8;
+hole_spacing = 16;
+hole_diameter = 5;
+
+// connections dimensions
+connection_width = 30;
+connection_length = 12;
 
 module bottom() {
    linear_extrude(height = bottom_thickness)
@@ -78,4 +88,27 @@ module base() {
     }
 }
 
-base();
+module top() {
+    linear_extrude(height = bottom_thickness)
+        square([pcb_length + 2 * wall_thickness, pcb_width + 2 * wall_thickness]);
+}
+
+
+module hole_grid() {
+    linear_extrude(h = bottom_thickness) {
+        for (j = [0:hole_spacing:3 * hole_spacing]) {
+            for (i = [0:hole_spacing:3 * hole_spacing]) {
+                translate([hole_width + i, hole_length + j, 0])
+                    circle(d = hole_diameter, $fn=100);
+            }
+        }
+    }
+        
+}
+
+difference() {
+    top();
+    hole_grid();
+    translate([0,0,0])
+        square([connection_width, connection_length]);
+}
